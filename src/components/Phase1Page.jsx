@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Database, ExternalLink, CheckCircle, Clock, Search, Trash2, FileText, ChevronRight, BarChart3, PieChart, Sun, Moon, Globe, Mail, User, Code2, Server } from 'lucide-react';
+import { ArrowLeft, Database, ExternalLink, CheckCircle, Clock, Search, Trash2, FileText, ChevronRight, BarChart3, PieChart, Sun, Moon, Globe, Mail, User, Code2, Server, Bot, Sparkles } from 'lucide-react';
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import Navbar from './Navbar';
 
 const Phase1Page = () => {
     // Convex Hooks
     const articles = useQuery(api.articles.list) || [];
     const deleteArticle = useMutation(api.articles.deleteArticle);
     const fetchNewArticle = useAction(api.actions.fetchNewArticle);
+    const analyzeArticle = useAction(api.ai.transformArticle);
 
     // UI Hooks (Background & Theme)
     const [darkMode, setDarkMode] = useState(true);
@@ -20,6 +22,7 @@ const Phase1Page = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedArticleId, setSelectedArticleId] = useState(null);
     const [isFetching, setIsFetching] = useState(false);
+    const [analyzingIds, setAnalyzingIds] = useState(new Set()); // Track loading states separately
 
     // Theme Effect
     useEffect(() => {
@@ -76,35 +79,32 @@ const Phase1Page = () => {
         }
     };
 
+    const handleAnalyze = async (id) => {
+        setAnalyzingIds(prev => new Set(prev).add(id));
+        try {
+            await analyzeArticle({ id });
+        } catch (error) {
+            alert("Analysis failed: " + error.message);
+        } finally {
+            setAnalyzingIds(prev => {
+                const next = new Set(prev);
+                next.delete(id);
+                return next;
+            });
+        }
+    };
+
     return (
         <div className="min-h-screen relative overflow-hidden bg-slate-50 dark:bg-[#0f172a] transition-colors duration-500 font-sans flex flex-col">
             <AnimatedBackground mouseX={mouseX} mouseY={mouseY} darkMode={darkMode} />
 
-            {/* Navbar (Unified) */}
-            <nav className="fixed top-0 w-full z-50 backdrop-blur-md border-b border-transparent dark:border-white/5 px-6 py-4 flex justify-between items-center transition-all duration-300">
-                <Link to="/" className="flex items-center gap-2 group">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-secondary to-cyan-500 flex items-center justify-center shadow-lg shadow-secondary/20 overflow-hidden border-2 border-white/10 group-hover:scale-105 transition-transform">
-                        <User size={20} className="text-white" />
-                    </div>
-                    <span className="text-xl font-bold tracking-tight text-slate-800 dark:text-white">
-                        Abhay<span className="text-secondary">Vyas</span>
-                    </span>
-                </Link>
-
-                <div className="flex items-center gap-3 md:gap-6">
-                    <button
-                        onClick={() => setDarkMode(!darkMode)}
-                        className="p-2.5 rounded-full bg-slate-200/50 dark:bg-white/5 hover:bg-slate-300 dark:hover:bg-white/10 transition-all shadow-sm"
-                    >
-                        {darkMode ? <Sun size={18} className="text-yellow-400" /> : <Moon size={18} className="text-slate-600" />}
-                    </button>
-                    <div className="hidden sm:flex items-center gap-3">
-                        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-200/50 dark:bg-white/5 text-sm font-semibold text-slate-700 dark:text-slate-200">
-                            <Database size={16} className="text-secondary" /> Phase 01: Ingestion
-                        </div>
+            <Navbar darkMode={darkMode} setDarkMode={setDarkMode}>
+                <div className="hidden sm:flex items-center gap-3">
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-200/50 dark:bg-white/5 text-sm font-semibold text-slate-700 dark:text-slate-200">
+                        <Database size={16} className="text-secondary" /> Phase 01: Ingestion
                     </div>
                 </div>
-            </nav>
+            </Navbar>
 
             {/* Main Dashboard Area */}
             <main className="flex-1 pt-28 pb-8 px-4 md:px-8 flex flex-col relative z-10 h-screen box-border">

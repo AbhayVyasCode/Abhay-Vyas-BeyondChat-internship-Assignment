@@ -51,9 +51,51 @@ export const update = mutation({
     },
 });
 
+// Get single article
+export const get = query({
+    args: { id: v.id("articles") },
+    handler: async (ctx, args) => {
+        return await ctx.db.get(args.id);
+    },
+});
+
+// Update article with AI results
+export const updateAI = mutation({
+    args: {
+        id: v.id("articles"),
+        aiSummary: v.optional(v.string()),
+        aiTags: v.optional(v.array(v.string())),
+        updatedContent: v.optional(v.string()),
+        citations: v.optional(v.array(v.string())),
+        seoScore: v.optional(v.number()),
+        seoAnalysis: v.optional(v.any()),
+    },
+    handler: async (ctx, args) => {
+        await ctx.db.patch(args.id, {
+            aiSummary: args.aiSummary,
+            aiTags: args.aiTags,
+            updatedContent: args.updatedContent,
+            citations: args.citations, // Save citations
+            seoScore: args.seoScore,
+            seoAnalysis: args.seoAnalysis,
+            status: "processed",
+        });
+    },
+});
+
 export const deleteArticle = mutation({
     args: { id: v.id("articles") },
     handler: async (ctx, args) => {
         await ctx.db.delete(args.id);
+    },
+});
+
+export const getPublic = query({
+    args: {},
+    handler: async (ctx) => {
+        return await ctx.db
+            .query("articles")
+            .withIndex("by_status", (q) => q.eq("status", "processed"))
+            .collect();
     },
 });

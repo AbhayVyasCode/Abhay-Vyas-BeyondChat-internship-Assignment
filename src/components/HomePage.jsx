@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import Navbar from './Navbar';
 import { ArrowRight, Database, Bot, Layout, Mail, Globe, Moon, Sun, Sparkles, Code2, Server, User } from 'lucide-react';
 
 const containerVariants = {
@@ -94,35 +95,12 @@ const HomePage = () => {
         <div className="min-h-screen relative overflow-hidden bg-slate-50 dark:bg-[#0f172a] selection:bg-primary/30 transition-colors duration-500 font-sans">
             <AnimatedBackground mouseX={mouseX} mouseY={mouseY} darkMode={darkMode} />
 
-            {/* Navbar */}
-            <nav className="fixed top-0 w-full z-50 backdrop-blur-md border-b border-transparent dark:border-white/5 px-6 py-4 flex justify-between items-center transition-all duration-300">
-                <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="flex items-center gap-2"
-                >
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary to-secondary flex items-center justify-center shadow-lg shadow-primary/20 overflow-hidden border-2 border-white/10">
-                        <User size={20} className="text-white" />
-                    </div>
-                    <span className="text-xl font-bold tracking-tight text-slate-800 dark:text-white">
-                        Abhay<span className="text-primary">Vyas</span>
-                    </span>
-                </motion.div>
-
-                <div className="flex items-center gap-3 md:gap-6">
-                    <button
-                        onClick={() => setDarkMode(!darkMode)}
-                        className="p-2.5 rounded-full bg-slate-200/50 dark:bg-white/5 hover:bg-slate-300 dark:hover:bg-white/10 transition-all shadow-sm"
-                    >
-                        {darkMode ? <Sun size={18} className="text-yellow-400" /> : <Moon size={18} className="text-slate-600" />}
-                    </button>
-
-                    <div className="hidden sm:flex items-center gap-3">
-                        <SocialLink href="https://deploy-self-portifolio.vercel.app/" icon={<Globe size={18} />} label="Portfolio" />
-                        <SocialLink href="mailto:vyasabhay202@gmail.com" icon={<Mail size={18} />} label="Contact" />
-                    </div>
+            <Navbar darkMode={darkMode} setDarkMode={setDarkMode}>
+                <div className="hidden sm:flex items-center gap-3">
+                    <SocialLink href="https://deploy-self-portifolio.vercel.app/" icon={<Globe size={18} />} label="Portfolio" />
+                    <SocialLink href="mailto:vyasabhay202@gmail.com" icon={<Mail size={18} />} label="Contact" />
                 </div>
-            </nav>
+            </Navbar>
 
             <main className="container mx-auto px-4 pt-32 pb-32 relative z-10">
                 <motion.div

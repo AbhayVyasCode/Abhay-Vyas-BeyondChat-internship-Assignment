@@ -9,6 +9,7 @@
  */
 
 import type * as actions from "../actions.js";
+import type * as ai from "../ai.js";
 import type * as articles from "../articles.js";
 
 import type {
@@ -19,6 +20,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   actions: typeof actions;
+  ai: typeof ai;
   articles: typeof articles;
 }>;
 
