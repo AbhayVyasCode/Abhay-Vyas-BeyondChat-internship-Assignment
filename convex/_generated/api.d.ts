@@ -11,6 +11,7 @@
 import type * as actions from "../actions.js";
 import type * as ai from "../ai.js";
 import type * as articles from "../articles.js";
+import type * as jarvis from "../jarvis.js";
 
 import type {
   ApiFromModules,
@@ -22,6 +23,7 @@ declare const fullApi: ApiFromModules<{
   actions: typeof actions;
   ai: typeof ai;
   articles: typeof articles;
+  jarvis: typeof jarvis;
 }>;
 
 /**

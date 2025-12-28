@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import Navbar from './Navbar';
-import { ArrowRight, BookOpen, User, Calendar, Tag, Share2, X, ExternalLink, Sparkles, Volume2, Play, Pause, Square, FastForward, Sun, Moon, Bot } from 'lucide-react';
+import { ArrowRight, ArrowLeft, BookOpen, User, Calendar, Tag, Share2, X, ExternalLink, Sparkles, Volume2, Play, Pause, Square, FastForward, Sun, Moon, Bot } from 'lucide-react';
 
 const AnimatedBackground = ({ mouseX, mouseY, darkMode }) => {
     // Spotlight follows mouse - using transform for performance
@@ -153,15 +153,42 @@ const Phase3Page = () => {
                 </Navbar>
             )}
 
+            {/* Floating Exit Button for Widget Mode */}
+            {viewMode === 'widget' && (
+                <button
+                    onClick={() => setViewMode('blog')}
+                    className="fixed left-10 top-1/2 -translate-y-1/2 z-50 flex flex-col items-start gap-2 group"
+                >
+                    <div className="text-4xl hover:-translate-x-2 transition-transform duration-300">
+                        <ArrowLeft size={40} className={darkMode ? 'text-white' : 'text-slate-900'} />
+                    </div>
+                    <div className={`text-5xl font-black uppercase leading-none tracking-tighter ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                        Exit<br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-violet-600 group-hover:pl-2 transition-all">Widget</span><br />
+                        View
+                    </div>
+                </button>
+            )}
+
             {/* Widget Mode Container (if active) */}
             <div className={`transition-all duration-500 relative z-10 ${viewMode === 'widget' ? 'w-[400px] h-[700px] bg-white dark:bg-black rounded-[40px] shadow-2xl overflow-hidden border-[8px] border-slate-800 relative' : 'w-full pt-28'}`}>
 
                 {/* Widget Header */}
                 {viewMode === 'widget' && (
                     <div className="bg-slate-50 dark:bg-white/5 p-4 border-b border-slate-200 dark:border-white/5 flex justify-between items-center">
-                        <span className="font-bold">BeyondInsights</span>
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg border-2 border-white/10 overflow-hidden relative">
+                                <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                                <span className="font-serif font-black text-white italic z-10 text-[10px]">AV</span>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className={`text-sm font-bold tracking-tight leading-none ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                                    Abhay <span className="text-cyan-500">Vyas</span>
+                                </span>
+                            </div>
+                        </div>
                         <div className="flex gap-2">
-                            <button onClick={() => setViewMode('blog')} className="text-slate-400 hover:text-black dark:hover:text-white"><ExternalLink size={16} /></button>
+                            {/* External Link Removed from Header */}
                             <button onClick={() => setDarkMode(!darkMode)}>{darkMode ? <Sun size={14} /> : <Moon size={14} />}</button>
                         </div>
                     </div>

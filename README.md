@@ -1,7 +1,7 @@
 # BeyondChats Internship Assignment
 
 Author: Abhay Vyas
-Status: In Progress
+Status: Completed
 
 ## Project Overview
 
@@ -96,7 +96,77 @@ README.md
 
 ---
 
-## Next Steps: Phase 2 (AI Agent)
+### Phase 2: Intelligent AI Refinement (Agent)
 
-* Integrate LLM to analyze scraped content.
-* Implement Chat with Data feature.
+The core "brain" of the application, transforming raw scraped data into structured intelligence.
+
+*   **Google Gemini Integration (`convex/ai.ts`)**:
+    *   Uses `gemini-2.5-flash` model for high-speed, cost-effective processing.
+    *   **Prompt Engineering**: Instructs the AI to act as an "elite content editor" to sanitize and upgrade content.
+    *   **Structured Output**: Forces JSON response correctly parsed to extraction:
+        *   **2-Sentence Summary**: For quick preview cards.
+        *   **SEO Analysis**: Generates a score (0-100), readability grade, and actionable critiques.
+        *   **Tags**: Auto-generates relevant hashtags.
+        *   **Rewritten Content**: Formats the article into clean Markdown.
+*   **Convex Actions**:
+    *   `transformArticle`: The server-side action that securely calls Google AI, parses the JSON response, and updates the database via `internalMutation`.
+
+### Phase 3: Premium Frontend Interaction
+
+A high-fidelity consumption experience with a focus on "Widgetization."
+
+*   **Immersive Blog Experience (`Phase3Page.jsx`)**:
+    *   **Spotlight Effect**: Custom cursor-tracking radial gradient overlay.
+    *   **TTS (Text-to-Speech)**: Built-in audio player to listen to articles with speed control (1x, 1.5x, 2x).
+    *   **Article Modal**: Full-screen, glassmorphic overlay for reading content without leaving the page.
+*   **Widget Mode**:
+    *   A simulated mobile/sidebar widget view.
+    *   Activated via "Try Widget View" in the Navbar.
+    *   **Features**:
+        *   Branded Header with Logo (AV).
+        *   Compact Card Layout.
+        *   **Dedicated Exit Button**: A large, gesture-friendly exit trigger on the left side of the screen.
+
+---
+
+## Technical Implementation Details
+
+### 1. The Scraper (Phase 1)
+We moved beyond simple `fetch()`. The scraper in `convex/actions.ts`:
+1.  **Crawls** the source URL.
+2.  **Follows Redirects** to ensure validity.
+3.  **Parses HTML** using `cheerio` to extract the H1 title and main content textual data.
+4.  **Dedupes** URLs to prevent redundant processing.
+
+### 2. The AI Pipeline (Phase 2)
+The transformation is atomic:
+1.  User clicks "Analyze" on Dashboard.
+2.  Frontend calls `api.ai.transformArticle`.
+3.  Backend hydrates the prompt with the raw content.
+4.  Gemini returns a JSON string.
+5.  Backend cleans markdown code blocks (```json ... ```) from the response.
+6.  DB is updated with `seoScore`, `aiSummary`, etc.
+
+### 3. The UI Engine (Phase 3)
+*   **Framework**: React + Vite.
+*   **Styling**: Tailwind CSS + `framer-motion` for shared layout animations (`layoutId`).
+*   **State**: URL-driven routing for pages, but local state for Widget Mode to demonstrate conditional rendering without full page reloads.
+
+### 4. Feature Spotlight: Jarvis AI Assistant (Home Screen)
+A conversational interface bridging the gap between the user and the developer.
+
+*   **Architecture**:
+    *   **Backend (`convex/jarvis.ts`)**: Initializes a dedicated chat session with Gemini. It injects a "System Prompt" containing the developer's resume (Abhay Vyas) and the project's technical architecture.
+    *   **Frontend (`JarvisChat.jsx`)**: A floating, glassmorphic chat widget.
+*   **Capabilities**:
+    *   Answers questions about the developer (Skills: React Native, Agentic AI, etc.).
+    *   Explains the project phases (Data Ingestion, AI Refinement).
+    *   General chatbot capabilities (Math, General Knowledge).
+
+---
+
+## Future Improvements
+
+*   **Auth**: Add user accounts to save favorite articles.
+*   **Vector Search**: Use Convex Vector Search for semantic querying of articles.
+

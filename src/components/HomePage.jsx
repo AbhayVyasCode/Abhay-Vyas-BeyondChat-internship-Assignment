@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import Navbar from './Navbar';
+import JarvisChat from './JarvisChat';
 import { ArrowRight, Database, Bot, Layout, Mail, Globe, Moon, Sun, Sparkles, Code2, Server, User } from 'lucide-react';
 
 const containerVariants = {
@@ -94,6 +95,7 @@ const HomePage = () => {
     return (
         <div className="min-h-screen relative overflow-hidden bg-slate-50 dark:bg-[#0f172a] selection:bg-primary/30 transition-colors duration-500 font-sans">
             <AnimatedBackground mouseX={mouseX} mouseY={mouseY} darkMode={darkMode} />
+            <JarvisChat />
 
             <Navbar darkMode={darkMode} setDarkMode={setDarkMode}>
                 <div className="hidden sm:flex items-center gap-3">

@@ -1,9 +1,10 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Sun, Moon, Database, Bot, Layout, Home } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Sun, Moon, Database, Bot, Layout, Home, ArrowLeft } from 'lucide-react';
 
 const Navbar = ({ darkMode, setDarkMode, children }) => {
     const location = useLocation();
+    const navigate = useNavigate();
 
     const isActive = (path) => location.pathname === path;
 
@@ -19,21 +20,33 @@ const Navbar = ({ darkMode, setDarkMode, children }) => {
 
     return (
         <nav className={`fixed top-0 w-full z-50 backdrop-blur-md border-b transition-all duration-300 ${darkMode ? 'bg-[#0f172a]/80 border-white/5' : 'bg-white/80 border-slate-200'} px-4 md:px-6 py-3 flex justify-between items-center`}>
-            {/* Logo */}
-            <Link to="/" className="flex items-center gap-3 group mr-6">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg border-2 border-white/10 group-hover:scale-110 transition-transform overflow-hidden relative">
-                    <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
-                    <span className="font-serif font-black text-white italic z-10 text-xs">AV</span>
-                </div>
-                <div className="flex flex-col">
-                    <span className={`text-lg font-bold tracking-tight leading-none ${darkMode ? 'text-white' : 'text-slate-900'}`}>
-                        Abhay <span className="text-cyan-500">Vyas</span>
-                    </span>
-                    <span className="text-[10px] font-medium text-slate-500 uppercase tracking-widest hidden sm:block">
-                        Full Stack and Agentic A.I developer
-                    </span>
-                </div>
-            </Link>
+            <div className="flex items-center gap-4">
+                {location.pathname !== '/' && (
+                    <button
+                        onClick={() => navigate(-1)}
+                        className={`p-2 rounded-full transition-all ${darkMode ? 'hover:bg-white/10 text-slate-400 hover:text-white' : 'hover:bg-slate-100 text-slate-500 hover:text-slate-900'}`}
+                        aria-label="Go Back"
+                    >
+                        <ArrowLeft size={20} />
+                    </button>
+                )}
+
+                {/* Logo */}
+                <Link to="/" className="flex items-center gap-3 group">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg border-2 border-white/10 group-hover:scale-110 transition-transform overflow-hidden relative">
+                        <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                        <span className="font-serif font-black text-white italic z-10 text-xs">AV</span>
+                    </div>
+                    <div className="flex flex-col">
+                        <span className={`text-lg font-bold tracking-tight leading-none ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                            Abhay <span className="text-cyan-500">Vyas</span>
+                        </span>
+                        <span className="text-[10px] font-medium text-slate-500 uppercase tracking-widest hidden sm:block">
+                            Full Stack and Agentic A.I developer
+                        </span>
+                    </div>
+                </Link>
+            </div>
 
             {/* Navigation Links (Center) */}
             <div className="flex items-center gap-1 md:gap-2">
