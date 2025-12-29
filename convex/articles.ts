@@ -60,6 +60,7 @@ export const get = query({
 });
 
 // Update article with AI results
+// Update article with AI results
 export const updateAI = mutation({
     args: {
         id: v.id("articles"),
@@ -69,6 +70,15 @@ export const updateAI = mutation({
         citations: v.optional(v.array(v.string())),
         seoScore: v.optional(v.number()),
         seoAnalysis: v.optional(v.any()),
+        // Ext
+        customPrompt: v.optional(v.string()),
+        versionHistory: v.optional(v.array(v.object({
+            timestamp: v.number(),
+            summary: v.optional(v.string()),
+            tags: v.optional(v.array(v.string())),
+            updatedContent: v.optional(v.string()),
+            seoAnalysis: v.optional(v.any())
+        })))
     },
     handler: async (ctx, args) => {
         await ctx.db.patch(args.id, {
@@ -79,6 +89,96 @@ export const updateAI = mutation({
             seoScore: args.seoScore,
             seoAnalysis: args.seoAnalysis,
             status: "processed",
+            // Ext
+            customPrompt: args.customPrompt,
+            versionHistory: args.versionHistory
+        });
+    },
+});
+
+export const restoreVersion = mutation({
+    args: {
+        id: v.id("articles"),
+        timestamp: v.number()
+    },
+    handler: async (ctx, args) => {
+        const article = await ctx.db.get(args.id);
+        if (!article || !article.versionHistory) throw new Error("Article or history not found");
+
+        const snapshot = article.versionHistory.find(v => v.timestamp === args.timestamp);
+        if (!snapshot) throw new Error("Version not found");
+
+        // Restore fields
+        await ctx.db.patch(args.id, {
+            aiSummary: snapshot.summary,
+            aiTags: snapshot.tags,
+            updatedContent: snapshot.updatedContent,
+            seoAnalysis: snapshot.seoAnalysis,
+            seoScore: snapshot.seoAnalysis?.score,
+        });
+    }
+});
+
+// Research Mutations
+export const updateResearchState = mutation({
+    args: { id: v.id("articles"), state: v.string() },
+    handler: async (ctx, args) => {
+        await ctx.db.patch(args.id, { researchState: args.state });
+    },
+});
+
+export const updateResearchCandidates = mutation({
+    args: {
+        id: v.id("articles"),
+        candidates: v.array(v.object({
+            url: v.string(),
+            title: v.string(),
+            snippet: v.string(),
+            status: v.string(),
+        })),
+        state: v.string()
+    },
+    handler: async (ctx, args) => {
+        await ctx.db.patch(args.id, {
+            researchCandidates: args.candidates,
+            researchState: args.state
+        });
+    },
+});
+
+export const updateCandidateStatus = mutation({
+    args: {
+        id: v.id("articles"),
+        candidateUrl: v.string(),
+        status: v.string() // "approved" | "rejected"
+    },
+    handler: async (ctx, args) => {
+        const article = await ctx.db.get(args.id);
+        if (!article || !article.researchCandidates) return;
+
+        const updatedCandidates = article.researchCandidates.map(c =>
+            c.url === args.candidateUrl ? { ...c, status: args.status } : c
+        );
+
+        await ctx.db.patch(args.id, { researchCandidates: updatedCandidates });
+    },
+});
+
+export const saveResearchConfig = mutation({
+    args: {
+        id: v.id("articles"),
+        tone: v.string(),
+        keywords: v.array(v.string()),
+        // Ext Set 2
+        targetLanguage: v.optional(v.string()),
+        readabilityLevel: v.optional(v.number())
+    },
+    handler: async (ctx, args) => {
+        await ctx.db.patch(args.id, {
+            userTone: args.tone,
+            userKeywords: args.keywords,
+            targetLanguage: args.targetLanguage,
+            readabilityLevel: args.readabilityLevel
         });
     },
 });
