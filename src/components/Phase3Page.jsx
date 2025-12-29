@@ -624,120 +624,131 @@ const KnowledgeGraph = ({ articles, onSelect, darkMode }) => {
         setEdges(initialEdges);
     }, [articles]);
 
-    // Physics Loop ("Galaxy" Gravity)
+    // Physics Loop
+    const globalRotation = useRef(0); // Track rotation for orbital modes
+
     useEffect(() => {
+        let animationFrameId;
+
         const updatePhysics = () => {
+            // Increment global rotation for Ring/Galaxy modes
+            globalRotation.current += 0.002; // Slow rotation speed
+
             setNodes(prevNodes => {
-                const newNodes = prevNodes.map(n => ({ ...n })); // Shallow copy for mutation
+                const newNodes = prevNodes.map(n => ({ ...n })); // Shallow copy
 
                 // Constants
-                const REPULSION = 3000; // Reduced for gentler movement
-                const ATTRACTION = 0.001; // Weaker springs
-                const CENTER_GRAVITY = 0.0001;
-                const DAMPING = 0.92; // Friction
-                const MAX_SPEED = 0.5; // Speed Limit
+                const DAMPING = 0.92;
+                const MAX_SPEED = 0.5;
+                const GRID_SIZE = 150;
 
-                // Screen Boundaries (Responsive)
+                // Screen Boundaries
                 const isMobile = window.innerWidth < 768;
                 const BOUND_X = isMobile ? 180 : 500;
                 const BOUND_Y = isMobile ? 250 : 350;
-
-                const GRID_SIZE = 150;
                 const RING_RADIUS = isMobile ? 160 : 300;
 
-                // 1. Calculate Forces based on Mode
                 if (layoutMode === 'galaxy') {
-                    // --- GALAXY MODE ---
-                    for (let i = 0; i < newNodes.length; i++) {
-                        for (let j = i + 1; j < newNodes.length; j++) {
-                            const a = newNodes[i];
-                            const b = newNodes[j];
-                            const dx = a.x - b.x;
-                            const dy = a.y - b.y;
-                            const distSq = dx * dx + dy * dy || 1;
-                            const force = REPULSION / distSq;
-                            const fx = (dx / Math.sqrt(distSq)) * force;
-                            const fy = (dy / Math.sqrt(distSq)) * force;
-                            a.vx += fx; a.vy += fy;
-                            b.vx -= fx; b.vy -= fy;
-                        }
+                    // --- GALAXY MODE: Solar System (Center Node + Orbiting Rings) ---
+                    // Node 0 is the "Sun" (Static Center)
+                    if (newNodes.length > 0) {
+                        const sun = newNodes[0];
+                        sun.x += (0 - sun.x) * 0.1; // Ease to center
+                        sun.y += (0 - sun.y) * 0.1;
+                        sun.vx = 0; sun.vy = 0;
                     }
-                    edges.forEach(edge => {
-                        const source = newNodes.find(n => n._id === edge.source);
-                        const target = newNodes.find(n => n._id === edge.target);
-                        if (source && target) {
-                            const dx = target.x - source.x;
-                            const dy = target.y - source.y;
-                            source.vx += dx * ATTRACTION * edge.strength;
-                            source.vy += dy * ATTRACTION * edge.strength;
-                            target.vx -= dx * ATTRACTION * edge.strength;
-                            target.vy -= dy * ATTRACTION * edge.strength;
-                        }
-                    });
-                    newNodes.forEach(node => {
-                        node.vx -= node.x * CENTER_GRAVITY;
-                        node.vy -= node.y * CENTER_GRAVITY;
-                    });
+
+                    // Others orbit
+                    for (let i = 1; i < newNodes.length; i++) {
+                        const node = newNodes[i];
+                        const angleOffset = (i / (newNodes.length - 1)) * Math.PI * 2;
+                        const currentAngle = globalRotation.current + angleOffset;
+
+                        // Spiral orbit radius based on index implies layers
+                        const orbitRadius = RING_RADIUS * (0.5 + (i % 3) * 0.3);
+
+                        const targetX = Math.cos(currentAngle) * orbitRadius;
+                        const targetY = Math.sin(currentAngle) * orbitRadius;
+
+                        // Pull tightly to orbit
+                        node.x += (targetX - node.x) * 0.05;
+                        node.y += (targetY - node.y) * 0.05;
+                        node.vx = 0; node.vy = 0; // Override physics
+                    }
 
                 } else if (layoutMode === 'grid') {
-                    // --- GRID MODE ---
+                    // --- GRID MODE: Static & Organized ---
                     const cols = Math.ceil(Math.sqrt(newNodes.length));
                     const mobileCols = Math.ceil(Math.sqrt(newNodes.length) / 1.5);
                     const activeCols = isMobile ? mobileCols : cols;
+
                     newNodes.forEach((node, i) => {
                         const col = i % activeCols;
                         const row = Math.floor(i / activeCols);
                         const targetX = (col - activeCols / 2) * (isMobile ? 100 : GRID_SIZE) + (isMobile ? 50 : 75);
                         const targetY = (row - activeCols / 2) * (isMobile ? 100 : GRID_SIZE) + (isMobile ? 50 : 75);
-                        node.vx += (targetX - node.x) * 0.05;
-                        node.vy += (targetY - node.y) * 0.05;
+
+                        // Hard ease to position (Steady)
+                        node.x += (targetX - node.x) * 0.1;
+                        node.y += (targetY - node.y) * 0.1;
+                        node.vx = 0; // Kill velocity
+                        node.vy = 0;
                     });
 
                 } else if (layoutMode === 'ring') {
-                    // --- RING MODE ---
+                    // --- RING MODE: Rotating Circle (All Nodes) ---
                     newNodes.forEach((node, i) => {
-                        const angle = (i / newNodes.length) * Math.PI * 2;
-                        const targetX = Math.cos(angle) * RING_RADIUS;
-                        const targetY = Math.sin(angle) * RING_RADIUS;
-                        node.vx += (targetX - node.x) * 0.05;
-                        node.vy += (targetY - node.y) * 0.05;
+                        const angleOffset = (i / newNodes.length) * Math.PI * 2;
+                        const currentAngle = globalRotation.current + angleOffset; // Rotate together
+
+                        const targetX = Math.cos(currentAngle) * RING_RADIUS;
+                        const targetY = Math.sin(currentAngle) * RING_RADIUS;
+
+                        // Pull to ring position
+                        node.x += (targetX - node.x) * 0.05;
+                        node.y += (targetY - node.y) * 0.05;
+
+                        // Apply tangential velocity for visual flair if switching modes
+                        // node.vx = ... 
                     });
                 }
 
-                // 2. Integration & Constraints
+                // Apply Constraints (Wall Bouncing) ONLY if not in specific modes that control position
+                // Actually, for Bang effect to work, we need physics integration.
+                // We'll apply physics mostly for the transition or "Bang" moments, 
+                // but the modes above override position.
+                // Let's allow physics to run but be overpowered by the mode logic, 
+                // unless velocity is HUGE (like a Bang).
+
                 newNodes.forEach(node => {
-                    node.x += node.vx;
-                    node.y += node.vy;
-
-                    // Wall Bouncing
-                    if (node.x > BOUND_X) { node.x = BOUND_X; node.vx *= -0.5; }
-                    if (node.x < -BOUND_X) { node.x = -BOUND_X; node.vx *= -0.5; }
-                    if (node.y > BOUND_Y) { node.y = BOUND_Y; node.vy *= -0.5; }
-                    if (node.y < -BOUND_Y) { node.y = -BOUND_Y; node.vy *= -0.5; }
-
-                    // Speed Limit
+                    // If high velocity (Bang), let it fly!
                     const speed = Math.sqrt(node.vx ** 2 + node.vy ** 2);
-                    if (speed > MAX_SPEED) {
-                        node.vx = (node.vx / speed) * MAX_SPEED;
-                        node.vy = (node.vy / speed) * MAX_SPEED;
-                    }
+                    if (speed > 1) {
+                        node.x += node.vx;
+                        node.y += node.vy;
+                        node.vx *= DAMPING;
+                        node.vy *= DAMPING;
 
-                    node.vx *= DAMPING;
-                    node.vy *= DAMPING;
+                        // Wall Bouncing for Bang
+                        if (node.x > BOUND_X) { node.x = BOUND_X; node.vx *= -0.5; }
+                        if (node.x < -BOUND_X) { node.x = -BOUND_X; node.vx *= -0.5; }
+                        if (node.y > BOUND_Y) { node.y = BOUND_Y; node.vy *= -0.5; }
+                        if (node.y < -BOUND_Y) { node.y = -BOUND_Y; node.vy *= -0.5; }
+                    }
                 });
 
                 return newNodes;
             });
 
-            animationRef.current = requestAnimationFrame(updatePhysics);
+            animationFrameId = requestAnimationFrame(updatePhysics);
         };
 
         if (articles.length > 0) {
-            animationRef.current = requestAnimationFrame(updatePhysics);
+            animationFrameId = requestAnimationFrame(updatePhysics);
         }
 
-        return () => cancelAnimationFrame(animationRef.current);
-    }, [articles.length, edges, layoutMode]);
+        return () => cancelAnimationFrame(animationFrameId);
+    }, [articles.length, layoutMode]);
 
     // Filter Logic
     const toggleTag = (tag) => {

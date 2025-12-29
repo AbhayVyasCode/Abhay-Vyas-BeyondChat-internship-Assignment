@@ -197,4 +197,19 @@ A conversational interface bridging the gap between the user and the developer.
 
 ---
 
+### 5. Performance & Optimization Strategy
+
+To ensure a seamless, lag-free experience, we implemented a multi-layered optimization strategy:
+
+*   **Code Splitting (Lazy Loading)**:
+    *   Instead of bundling the entire application at once, we use `React.lazy()` to split page components (`Phase1Page`, `Phase2Page`, etc.) into separate chunks.
+    *   This drastically reduces the **Initial Bundle Size**, ensuring fast First Contentful Paint (FCP).
+*   **Concurrent Loading (Suspense)**:
+    *   Routes are wrapped in `<Suspense>` with a custom `LoadingSpinner`. This decoupled loading state ensures the UI remains responsive even during network fetches.
+*   **CSS Hardware Acceleration**:
+    *   Global `scroll-behavior: smooth` is applied for fluid navigation.
+    *   Heavy animations (like the Knowledge Graph) use `framer-motion`'s optimized drivers (transform/opacity) rather than layout-triggering properties to maintain 60FPS.
+
+---
+
 
