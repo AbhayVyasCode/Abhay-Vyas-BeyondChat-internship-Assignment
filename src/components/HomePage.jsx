@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 import Navbar from './Navbar';
+import Footer from './Footer';
 import JarvisChat from './JarvisChat';
 import { ArrowRight, Database, Bot, Layout, Mail, Globe, Moon, Sun, Sparkles, Code2, Server, User } from 'lucide-react';
 
@@ -71,17 +73,9 @@ const TypewriterText = () => {
 
 
 const HomePage = () => {
-    const [darkMode, setDarkMode] = useState(true);
+    const { darkMode } = useTheme();
     const mouseX = useMotionValue(0);
     const mouseY = useMotionValue(0);
-
-    useEffect(() => {
-        if (darkMode) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    }, [darkMode]);
 
     useEffect(() => {
         const handleMouseMove = (e) => {
@@ -97,7 +91,7 @@ const HomePage = () => {
             <AnimatedBackground mouseX={mouseX} mouseY={mouseY} darkMode={darkMode} />
             <JarvisChat />
 
-            <Navbar darkMode={darkMode} setDarkMode={setDarkMode}>
+            <Navbar>
                 <div className="hidden sm:flex items-center gap-3">
                     <SocialLink href="https://deploy-self-portifolio.vercel.app/" icon={<Globe size={18} />} label="Portfolio" />
                     <SocialLink href="mailto:vyasabhay202@gmail.com" icon={<Mail size={18} />} label="Contact" />
@@ -114,7 +108,7 @@ const HomePage = () => {
                     {/* Hero Section */}
                     <motion.div variants={itemVariants} className="text-center mb-28 relative">
                         {/* Decorative Elements */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-gradient-to-r from-primary/30 via-secondary/30 to-accent/30 blur-[100px] rounded-full -z-10 opacity-50 pointer-events-none" />
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[800px] h-[400px] bg-gradient-to-r from-primary/30 via-secondary/30 to-accent/30 blur-[100px] rounded-full -z-10 opacity-50 pointer-events-none" />
 
                         <h1 className="text-5xl md:text-7xl font-extrabold mb-8 tracking-tight leading-tight text-slate-900 dark:text-white min-h-[160px] md:min-h-[200px] flex flex-col justify-center items-center">
                             <span>BeyondChats Internship Assessment</span>
@@ -186,15 +180,7 @@ const HomePage = () => {
 
                 </motion.div>
             </main>
-
-            <footer className="text-center py-12 text-slate-500 text-sm border-t border-slate-200 dark:border-white/5 relative z-10 bg-slate-50/50 dark:bg-black/20 backdrop-blur-sm">
-                <div className="flex justify-center gap-6 mb-4">
-                    <FooterLink href="#" icon={<Code2 size={16} />} label="React" />
-                    <FooterLink href="#" icon={<Server size={16} />} label="Node.js" />
-                    <FooterLink href="#" icon={<Database size={16} />} label="Convex" />
-                </div>
-                <p className="font-medium">© 2024 Abhay Vyas. Internship Submission.</p>
-            </footer>
+            <Footer />
         </div>
     );
 };

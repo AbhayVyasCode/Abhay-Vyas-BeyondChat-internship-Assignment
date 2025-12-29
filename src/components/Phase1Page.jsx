@@ -4,7 +4,9 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Database, ExternalLink, CheckCircle, Clock, Search, Trash2, FileText, ChevronRight, BarChart3, PieChart, Sun, Moon, Globe, Mail, User, Code2, Server, Bot, Sparkles } from 'lucide-react';
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { useTheme } from '../context/ThemeContext';
 import Navbar from './Navbar';
+import Footer from './Footer';
 
 const Phase1Page = () => {
     // Convex Hooks
@@ -14,7 +16,7 @@ const Phase1Page = () => {
     const analyzeArticle = useAction(api.ai.transformArticle);
 
     // UI Hooks (Background & Theme)
-    const [darkMode, setDarkMode] = useState(true);
+    const { darkMode } = useTheme();
     const mouseX = useMotionValue(0);
     const mouseY = useMotionValue(0);
 
@@ -24,14 +26,6 @@ const Phase1Page = () => {
     const [isFetching, setIsFetching] = useState(false);
     const [analyzingIds, setAnalyzingIds] = useState(new Set()); // Track loading states separately
 
-    // Theme Effect
-    useEffect(() => {
-        if (darkMode) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    }, [darkMode]);
 
     // Mouse Effect
     useEffect(() => {
@@ -98,9 +92,9 @@ const Phase1Page = () => {
         <div className="min-h-screen relative overflow-hidden bg-slate-50 dark:bg-[#0f172a] transition-colors duration-500 font-sans flex flex-col">
             <AnimatedBackground mouseX={mouseX} mouseY={mouseY} darkMode={darkMode} />
 
-            <Navbar darkMode={darkMode} setDarkMode={setDarkMode}>
+            <Navbar>
                 <div className="hidden sm:flex items-center gap-3">
-                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-200/50 dark:bg-white/5 text-sm font-semibold text-slate-700 dark:text-slate-200">
+                    <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-slate-200/50 dark:bg-white/5 text-sm font-semibold text-slate-700 dark:text-slate-200">
                         <Database size={16} className="text-secondary" /> Phase 01: Ingestion
                     </div>
                 </div>
@@ -110,7 +104,7 @@ const Phase1Page = () => {
             <main className="flex-1 pt-28 pb-8 px-4 md:px-8 flex flex-col relative z-10 h-screen box-border">
 
                 {/* Dashboard Container */}
-                <div className="flex-1 flex overflow-hidden bg-white/50 dark:bg-[#0f172a]/50 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-3xl shadow-2xl">
+                <div className="flex-1 flex flex-col md:flex-row overflow-hidden bg-white/50 dark:bg-[#0f172a]/50 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-3xl shadow-2xl">
 
                     {/* LEFT PANEL: LIST (35%) */}
                     <div className="w-full md:w-[380px] border-r border-slate-200 dark:border-white/10 flex flex-col bg-slate-50/50 dark:bg-black/20 md:flex-shrink-0">
@@ -253,14 +247,7 @@ const Phase1Page = () => {
             </main>
 
             {/* Footer */}
-            <footer className="text-center py-6 text-slate-500 text-xs border-t border-slate-200 dark:border-white/5 relative z-10 bg-slate-50/50 dark:bg-black/20 backdrop-blur-sm">
-                <div className="flex justify-center gap-6 mb-2">
-                    <FooterLink icon={<Code2 size={14} />} label="React" />
-                    <FooterLink icon={<Server size={14} />} label="Node.js" />
-                    <FooterLink icon={<Database size={14} />} label="Convex" />
-                </div>
-                <p className="font-medium opacity-70">© 2024 Abhay Vyas. Phase 1 Assessment.</p>
-            </footer>
+            <Footer />
         </div>
     );
 };
@@ -300,12 +287,6 @@ const MetricCard = ({ label, value, icon }) => (
         <div className="p-2 bg-slate-100 dark:bg-white/5 rounded-lg opacity-80">
             {icon}
         </div>
-    </div>
-);
-
-const FooterLink = ({ icon, label }) => (
-    <div className="flex items-center gap-1.5 opacity-50 hover:opacity-100 transition-opacity cursor-pointer">
-        {icon} <span>{label}</span>
     </div>
 );
 

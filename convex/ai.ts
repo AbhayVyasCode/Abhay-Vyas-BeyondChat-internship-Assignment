@@ -210,20 +210,42 @@ export const transformArticle = action({
             // Use the Retry/Fallback logic
             let text = await generateWithRetry(prompt, ["gemini-2.5-flash", "gemini-2.5-pro"]);
 
-            // Clean up JSON markdown
-            text = text.replace(/```json/g, "").replace(/```/g, "").trim();
-            const firstOpen = text.indexOf('{');
-            const lastClose = text.lastIndexOf('}');
+            // Clean up JSON markdown and potential pre/post text
+            let cleanText = text.replace(/```json/g, "").replace(/```/g, "").trim();
+
+            // Extract just the JSON object if there's extra text
+            const firstOpen = cleanText.indexOf('{');
+            const lastClose = cleanText.lastIndexOf('}');
+
             if (firstOpen !== -1 && lastClose !== -1) {
-                text = text.substring(firstOpen, lastClose + 1);
+                cleanText = cleanText.substring(firstOpen, lastClose + 1);
             }
+
+            // Escape control characters that might break JSON.parse
+            // This fixes issues with unescaped newlines within strings
+            // However, we must be careful not to break valid newlines.
+            // A safer approach for valid JSON is usually to rely on the Model's ability,
+            // but we can try to catch common errors.
 
             let data;
             try {
-                data = JSON.parse(text);
+                data = JSON.parse(cleanText);
             } catch (parseError) {
-                console.error("JSON Parse Failure. Raw Text:", text);
-                throw new Error("Invalid JSON response from AI. The model output was not valid JSON.");
+                console.error("JSON Parse Failure. Raw Text:", cleanText);
+
+                // Fallback: Try minimal cleanup for common issues
+                try {
+                    // Sometimes models output single quotes or bad newlines. 
+                    // This is a last-ditch effort.
+                    const fixedText = cleanText.replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\t/g, "\\t");
+                    // This replace is dangerous if the newlines were REAL structure, but 
+                    // standard JSON shouldn't have real newlines in strings without escaping.
+                    // A better fix is usually usually requesting the model again or using a library.
+                    // For now, let's just log and re-throw, as aggressive regex replacement is risky.
+                    throw new Error("Invalid JSON structure");
+                } catch (e) {
+                    throw new Error("Invalid JSON response from AI. The model output was not valid JSON.");
+                }
             }
 
             await ctx.runMutation(api.articles.updateAI, {
@@ -261,6 +283,54 @@ export const listModels = action({
                 .map((m: any) => ({ name: m.name, displayName: m.displayName }));
         } catch (error: any) {
             throw new Error("Failed to list models: " + error.message);
+        }
+    }
+});
+
+// --- Feature: Ask This Article (RAG Chat) ---
+export const askQuestion = action({
+    args: {
+        articleId: v.id("articles"),
+        question: v.string(),
+        history: v.array(v.object({ role: v.string(), content: v.string() }))
+    },
+    handler: async (ctx, args) => {
+        const article = await ctx.runQuery(api.articles.get, { id: args.articleId });
+        if (!article) throw new Error("Article not found");
+
+        const content = article.updatedContent || article.originalContent;
+        if (!content) throw new Error("No content available to answer questions.");
+
+        // Construct Conversation
+        let prompt = `You are a helpful reading assistant.
+User is reading an article titled: "${article.title}".
+
+=== ARTICLE CONTENT START ===
+${content.slice(0, 10000)}
+=== ARTICLE CONTENT END ===
+
+Instructions:
+1. Answer the user's question based strictly on the article content provided above.
+2. If the answer is not in the text, politely say "I couldn't find that information in this article."
+3. Keep answers concise (under 3 sentences) unless asked for elaboration.
+4. Be conversational and friendly.
+
+Current Chat History:
+`;
+
+        // Add last 3 turns for context
+        args.history.slice(-3).forEach(msg => {
+            prompt += `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}\n`;
+        });
+
+        prompt += `\nUser: ${args.question}\nAssistant:`;
+
+        try {
+            const answer = await generateWithRetry(prompt, ["gemini-2.5-flash"]);
+            return answer;
+        } catch (e) {
+            console.error("Q&A Failed:", e);
+            return "I'm having trouble analyzing the text right now. Please try again.";
         }
     }
 });

@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Sun, Moon, Database, Bot, Layout, Home, ArrowLeft } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
-const Navbar = ({ darkMode, setDarkMode, children }) => {
+const Navbar = ({ children }) => {
+    const { darkMode, toggleTheme } = useTheme();
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -63,7 +65,7 @@ const Navbar = ({ darkMode, setDarkMode, children }) => {
 
                 {/* Dark Mode Toggle */}
                 <button
-                    onClick={() => setDarkMode(!darkMode)}
+                    onClick={toggleTheme}
                     className={`p-2 rounded-full transition-all ${darkMode ? 'bg-white/5 hover:bg-white/10 text-yellow-400' : 'bg-slate-200/50 hover:bg-slate-300 text-slate-600'}`}
                 >
                     {darkMode ? <Sun size={18} /> : <Moon size={18} />}

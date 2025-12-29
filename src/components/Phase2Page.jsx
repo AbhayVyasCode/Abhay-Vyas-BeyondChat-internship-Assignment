@@ -4,7 +4,9 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Bot, ExternalLink, Sparkles, Terminal, Sun, Moon, User, Database, Layout, Trash2, CheckCircle2, AlertCircle, Cpu, RefreshCw, Search, ThumbsUp, ThumbsDown, Sliders, Globe, Eye, FileDiff, History, RotateCcw, Download, FileText, Printer, Quote, Languages, BookOpen } from 'lucide-react';
 import { useQuery, useAction, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { useTheme } from '../context/ThemeContext';
 import Navbar from './Navbar';
+import Footer from './Footer';
 
 const Phase2Page = () => {
     // Convex Hooks
@@ -20,7 +22,7 @@ const Phase2Page = () => {
     // UI State
     const [selectedArticleId, setSelectedArticleId] = useState(null);
     const [viewMode, setViewMode] = useState('agent'); // 'agent' | 'diff'
-    const [darkMode, setDarkMode] = useState(true);
+    const { darkMode } = useTheme();
     const [isProcessing, setIsProcessing] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
 
@@ -52,12 +54,6 @@ const Phase2Page = () => {
             if (selectedArticle.readabilityLevel !== undefined) setReadabilityLevel(selectedArticle.readabilityLevel);
         }
     }, [selectedArticleId]);
-
-    // Theme
-    useEffect(() => {
-        if (darkMode) document.documentElement.classList.add('dark');
-        else document.documentElement.classList.remove('dark');
-    }, [darkMode]);
 
     // Mouse Effects
     const mouseX = useMotionValue(0);
@@ -145,8 +141,8 @@ const Phase2Page = () => {
         <div className="min-h-screen relative bg-slate-50 dark:bg-[#0f172a] transition-colors duration-500 font-sans flex flex-col overflow-x-hidden">
             <AnimatedBackground mouseX={mouseX} mouseY={mouseY} darkMode={darkMode} />
 
-            <Navbar darkMode={darkMode} setDarkMode={setDarkMode}>
-                <div className="px-4 py-2 rounded-full bg-slate-200/50 dark:bg-white/5 text-sm font-semibold text-pink-500 border border-pink-500/20 shadow-[0_0_15px_rgba(236,72,153,0.3)]">
+            <Navbar>
+                <div className="hidden md:block px-4 py-2 rounded-full bg-slate-200/50 dark:bg-white/5 text-sm font-semibold text-pink-500 border border-pink-500/20 shadow-[0_0_15px_rgba(236,72,153,0.3)]">
                     Gemini 2.5 Research Agent
                 </div>
             </Navbar>
@@ -328,7 +324,7 @@ const Phase2Page = () => {
                                 <div className="lg:col-span-8 bg-white dark:bg-slate-900 border border-pink-500/20 shadow-2xl shadow-pink-500/5 rounded-3xl flex flex-col relative min-h-[600px]">
 
                                     {/* Toolbar */}
-                                    <div className="bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/5 p-4 flex justify-between items-center rounded-t-3xl">
+                                    <div className="bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/5 p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 rounded-t-3xl">
                                         <div className="flex items-center gap-3">
                                             <div className="p-2 bg-pink-500/10 rounded-lg">
                                                 <Bot size={20} className="text-pink-500" />
@@ -341,36 +337,58 @@ const Phase2Page = () => {
                                             </div>
                                         </div>
 
-                                        <div className="flex gap-2 items-center">
+                                        <div className="flex gap-2 items-center w-full md:w-auto overflow-x-auto pb-1 md:pb-0 scrollbar-hide">
                                             {selectedArticle.updatedContent && (
                                                 <>
                                                     {/* Feature: Export */}
-                                                    <div className="flex bg-slate-200 dark:bg-black/40 p-1 rounded-lg mr-2">
-                                                        <button title="Print to PDF" onClick={() => window.print()} className="p-1.5 hover:text-pink-500 transition-colors text-slate-500"><Printer size={16} /></button>
-                                                        <button title="Download Markdown" onClick={handleDownloadMarkdown} className="p-1.5 hover:text-pink-500 transition-colors text-slate-500"><FileText size={16} /></button>
+                                                    <div className="flex bg-slate-200 dark:bg-black/40 p-1.5 rounded-xl mr-3 gap-1">
+                                                        <motion.button
+                                                            whileHover={{ scale: 1.1 }}
+                                                            whileTap={{ scale: 0.95 }}
+                                                            title="Print to PDF"
+                                                            onClick={() => window.print()}
+                                                            className="p-2 text-red-500 hover:text-red-700 transition-colors"
+                                                        >
+                                                            <Printer size={20} />
+                                                        </motion.button>
+                                                        <motion.button
+                                                            whileHover={{ scale: 1.1 }}
+                                                            whileTap={{ scale: 0.95 }}
+                                                            title="Download Markdown"
+                                                            onClick={handleDownloadMarkdown}
+                                                            className="p-2 text-red-500 hover:text-red-700 transition-colors"
+                                                        >
+                                                            <FileText size={20} />
+                                                        </motion.button>
                                                     </div>
 
                                                     {/* Feature: History */}
-                                                    <button
+                                                    <motion.button
+                                                        whileHover={{ scale: 1.1 }}
+                                                        whileTap={{ scale: 0.95 }}
                                                         onClick={() => setShowHistory(!showHistory)}
-                                                        className={`p-2 rounded-lg transition-all mr-2 ${showHistory ? 'bg-pink-500 text-white' : 'hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500'}`}
+                                                        className={`p-2.5 rounded-xl transition-all mr-3 ${showHistory ? 'bg-red-500 text-white' : 'text-red-500 hover:bg-slate-200 dark:hover:bg-white/10'}`}
                                                     >
-                                                        <History size={18} />
-                                                    </button>
+                                                        <History size={22} />
+                                                    </motion.button>
 
-                                                    <div className="flex bg-slate-200 dark:bg-black/40 p-1 rounded-lg">
-                                                        <button
+                                                    <div className="flex bg-slate-200 dark:bg-black/40 p-1.5 rounded-xl gap-1">
+                                                        <motion.button
+                                                            whileHover={{ scale: 1.05 }}
+                                                            whileTap={{ scale: 0.95 }}
                                                             onClick={() => setViewMode('agent')}
-                                                            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${viewMode === 'agent' ? 'bg-white dark:bg-white/10 shadow-sm text-pink-500' : 'text-slate-500'}`}
+                                                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${viewMode === 'agent' ? 'bg-white dark:bg-white/10 shadow-sm text-red-500' : 'text-slate-500 hover:text-red-400'}`}
                                                         >
                                                             Final View
-                                                        </button>
-                                                        <button
+                                                        </motion.button>
+                                                        <motion.button
+                                                            whileHover={{ scale: 1.05 }}
+                                                            whileTap={{ scale: 0.95 }}
                                                             onClick={() => setViewMode('diff')}
-                                                            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-2 ${viewMode === 'diff' ? 'bg-white dark:bg-white/10 shadow-sm text-pink-500' : 'text-slate-500'}`}
+                                                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${viewMode === 'diff' ? 'bg-white dark:bg-white/10 shadow-sm text-red-500' : 'text-slate-500 hover:text-red-400'}`}
                                                         >
-                                                            <FileDiff size={14} /> Diff
-                                                        </button>
+                                                            <FileDiff size={16} /> Diff
+                                                        </motion.button>
                                                     </div>
                                                 </>
                                             )}
@@ -474,6 +492,7 @@ const Phase2Page = () => {
                     </AnimatePresence>
                 </section>
             </main>
+            <Footer />
         </div>
     );
 };
@@ -522,11 +541,45 @@ const DiffView = ({ original, updated }) => {
 };
 
 const AnimatedBackground = ({ mouseX, mouseY, darkMode }) => {
-    const maskImage = useTransform(mouseX, (x) => `radial-gradient(400px circle at ${x}px ${mouseY.get()}px, black, transparent)`);
+    // Spotlight follows mouse - using transform for performance
+    const backgroundX = useTransform(mouseX, [0, 5000], [0, 5000]);
+    const backgroundY = useTransform(mouseY, [0, 5000], [0, 5000]);
+
+    // Create a radial gradient string that will move with the mouse
+    const maskImage = useTransform(
+        [mouseX, mouseY],
+        ([x, y]) => `radial-gradient(400px circle at ${x}px ${y}px, black, transparent)`
+    );
+
     return (
         <div className="fixed inset-0 z-0 pointer-events-none">
-            <div className="absolute inset-0 bg-slate-50 dark:bg-[#0f172a] transition-colors duration-500" />
-            <div className={`absolute inset-0 bg-[size:24px_24px] bg-grid-slate-200 dark:bg-grid-slate-800/[0.2] [mask-image:linear-gradient(to_bottom,white,transparent)]`} />
+            {/* 1. Base Gradient - Deep background noise/texture */}
+            <div className="absolute inset-0 bg-slate-50 dark:bg-[#0f172a] transition-colors duration-500 opacity-100" />
+            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 dark:opacity-15 mix-blend-overlay" />
+
+            {/* 2. Static Center Glow (Similar to the reference image) */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vh] bg-primary/20 rounded-full blur-[150px] opacity-40 mix-blend-multiply dark:mix-blend-screen" />
+
+            {/* 3. The Grid - Layer 1 (Faint static) */}
+            <div className={`absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] ${darkMode ? 'opacity-10' : 'opacity-[0.05]'}`}></div>
+
+            {/* 4. The Grid - Layer 2 (Spotlight Reveal) */}
+            {/* This layer has a BRIGHTER grid but is masked by the spotlight radial gradient */}
+            <motion.div
+                className="absolute inset-0 bg-[linear-gradient(to_right,#8b5cf6_1px,transparent_1px),linear-gradient(to_bottom,#8b5cf6_1px,transparent_1px)] bg-[size:24px_24px] opacity-20"
+                style={{ maskImage, WebkitMaskImage: maskImage }}
+            />
+
+            {/* 5. Spotlight Glow itself (Color) */}
+            <motion.div
+                className="absolute top-0 left-0 w-[500px] h-[500px] bg-primary/30 rounded-full blur-[100px] mix-blend-screen opacity-50"
+                style={{
+                    x: mouseX,
+                    y: mouseY,
+                    translateX: '-50%',
+                    translateY: '-50%'
+                }}
+            />
         </div>
     );
 };
