@@ -9,7 +9,7 @@ const Footer = () => {
                 <FooterLink icon={<Server size={16} />} label="Node.js" />
                 <FooterLink icon={<Database size={16} />} label="Convex" />
             </div>
-            <p className="font-medium">© 2024 Abhay Vyas. Internship Submission.</p>
+            <p className="font-medium">© 2025 Abhay Vyas. Internship Submission.</p>
         </footer>
     );
 };
